@@ -112,6 +112,8 @@ function Confirm-TspsApiAuthToken
 }
 
 
+### Need to consult BMC R and D on issues with this API route
+### It does not appear to work
 function Get-TspsApiTokenUserGroup
 {
     [CmdletBinding()]
@@ -144,7 +146,7 @@ function Get-TspsApiTokenUserGroup
 
     ### Invoke REST method with built parameters to validate auth token
     return (Invoke-RestMethod @params)
-} #Not behaving as anticipated
+}
 
 
 ### OmProvider route API calls
@@ -303,6 +305,13 @@ function Get-TspsApiDevice
 }
 
 
+### This route of the API does not work as documented. It works if you
+### the three parameters of the Monitoring Instance Key in separately,
+### but passing them in combined into an hashtable does not work as it
+### should. Turns out that you can make it work if you use the server
+### name in place of the server ID. BMC has noted this as a defect and
+### will address it in a future release.
+### Current release at the time of this writing is 11.3.02
 function Get-TspsApiMonitorInstance
 {
     [CmdletBinding()]
@@ -370,7 +379,7 @@ function Get-TspsApiMonitorInstance
     if ($Http) {$params.Add('Http', $true)}
 
     return (Invoke-TspsApiOmProvider @params)
-} #Not behaving as anticipated
+}
 
 
 function Get-TspsApiMonitorType
