@@ -21,10 +21,40 @@ add-type @"
 ###                General Utility Functions                  ###
 #################################################################
 
+<#
+.SYNOPSIS
+Converts datetime object to Unix time.
 
+.DESCRIPTION
+Converts datetime object to Unix time. Will give current datetime
+in Unix time, if no other datetime object is provided.
+
+.PARAMETER Date
+Datetime object to be converted into Unix time.
+Defaults to the output of Get-Date at the time
+this function is called.
+
+.INPUTS
+Get-UnixTimeFromDateTime can accept a datetime object from the
+pipeline.
+
+.EXAMPLE
+PS> Get-UnixTimeFromDateTime
+1579108753
+
+.EXAMPLE
+PS> Get-UnixTimeFromDateTime -Date (Get-Date -Date '1991/09/17')
+685090800
+
+.EXAMPLE
+PS> Get-Date -Date '1991/09/17' | Get-UnixTimeFromDateTime
+685090800
+#>
 function Get-UnixTimeFromDateTime
 {
+    [CmdletBinding()]
     param(
+        [Parameter(ValueFromPipeline)]
         [datetime]$Date=(Get-Date)
     )
 
@@ -42,10 +72,43 @@ function Get-UnixTimeFromDateTime
 }
 
 
+<#
+.SYNOPSIS
+Converts Unix time to local time as a datetime object.
+
+.DESCRIPTION
+Converts Unix time to local time as a datetime object.
+A if the Format parameter is used, the date will be
+returned as a string in the specified format instead.
+
+.PARAMETER UnixTime
+A unix timestamp to be converted to local time and
+returned as a datetime object.
+Can accept a value from the pipeline.
+
+.PARAMETER Format
+An optional parameter that specifies an output format.
+If used, the date is returned as a string in the 
+specified format instead of a datetime object.
+
+.INPUTS
+Get-LocalDateTimeFromUnixTime can accept a a Unix timestamp
+from the pipeline for the UnixTime parameter.
+
+.EXAMPLE
+PS> Get-LocalDateTimeFromUnixTime -UnixTime 685090800
+
+Tuesday, September 17, 1991 12:00:00 AM
+
+.EXAMPLE
+PS> 685090800 | Get-LocalDateTimeFromUnixTime -Format 'yyyy/MM/dd hh:mm:ss'
+1991/09/17 12:00:00
+#>
 function Get-LocalDateTimeFromUnixTime
 {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,
+        ValueFromPipeline)]
         [Int32]$UnixTime,
         [string]$Format
     )
@@ -67,60 +130,40 @@ function Get-LocalDateTimeFromUnixTime
 ###                    TSPS API Functions                     ###
 #################################################################
 
-
 <#
 .SYNOPSIS
-
 Requests an authorization token from the TrueSight Presentation Server.
 
 .DESCRIPTION
-
 Requests an authorization token from the TrueSight Presentation Server.
 Requires valid TrueSight credentials with rights to access API.
 
 .PARAMETER PresentationServer
-
-TypeName: System.String
-
 The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-
-TypeName: System.String
-
 The TrueSight tenant that the user exists under.
 Default value is "*"
 
 .PARAMETER Credentials
-
-TypeName: System.Management.Automation.PSCredential
-
 A PSCredential object containing valid TrueSight credentials,
 under the appropriate tenant, with rights to access the API.
 Will run Get-Credential to create PSCredential object if one
 is not supplied.
 
 .PARAMETER Http
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies to use HTTP instead of HTTPS when
 calling the TrueSight API
 
 .PARAMETER FullResponse
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies whether to return the entire response
 from the API, or only the 'response.authToken' property of the
 response.
 
 .INPUTS
-
 None. You cannot pipe objects to Request-TspsApiAuthToken.
 
 .OUTPUTS
-
 TypeName: System.String
 TypeName: System.Management.Automation.PSCustomObject
 
@@ -131,12 +174,10 @@ will return an object containing the full response from the
 API, not just the 'response.authToken' property.
 
 .EXAMPLE
-
 PS> Request-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Credentials <PSCredential Object>
 _9k78f18d-b7b6-4aae-a4d7-61e43a6bafd8
 
 .EXAMPLE
-
 PS> Request-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Tenant <Valid Tenant>
 cmdlet Get-Credential at command pipeline position 1
 Supply values for the following parameters:
@@ -207,47 +248,32 @@ function Request-TspsApiAuthToken
 
 <#
 .SYNOPSIS
-
 Confirms the validity of an authorization token issued from the
 TrueSight Presentation Server.
 
 .DESCRIPTION
-
 Confirms the validity of an authorization token issued from the
 TrueSight Presentation Server.
 
 .PARAMETER PresentationServer
-
-TypeName: System.String
-
 The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Token
-
-TypeName: System.String
-
 A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies to use HTTP instead of HTTPS when
 calling the TrueSight API
 
 .PARAMETER FullResponse
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies whether to return the entire response
 from the API, or just the 'response' property of the response.
 
 .INPUTS
-
-None. You cannot pipe objects to Confirm-TspsApiAuthToken.
+Confirm-TspsApiAuthToken will accept a value for the Token
+parameter from the pipeline.
 
 .OUTPUTS
-
 TypeName: System.Management.Automation.PSCustomObject
 
 Confirm-TspsApiAuthToken returns an object containing the
@@ -259,8 +285,14 @@ If the FullResponse switch is used, Confirm-TspsApiAuthToken
 will return the full response from the API as an object.
 
 .EXAMPLE
-
 PS> Confirm-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Token <Valid Token>
+
+username  tenantName
+--------  ----------
+jsnover   *         
+
+.EXAMPLE
+PS> <Valid Token> | Confirm-TspsApiAuthToken -PresentationServer <TSPS Hostname>
 
 username  tenantName
 --------  ----------
@@ -273,7 +305,8 @@ function Confirm-TspsApiAuthToken
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PresentationServer,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,
+        ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
         [string]$Token,
         [switch]$Http,
@@ -315,30 +348,35 @@ function Confirm-TspsApiAuthToken
 #.# It seems to require an account to have permissions not specified
 #.# in the documentation:
 #.# https://docs.bmc.com/docs/tsps113/obtaining-user-groups-for-the-authenticated-user-765456178.html
+
 <#
 .SYNOPSIS
-Short description
+Retrieves the list of groups for the token's associated user.
 
 .DESCRIPTION
-Long description
+Retrieves the list of groups for the token's associated user.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response
+from the API, or just the 'response' property of the response.
 
-.EXAMPLE
-An example
+.INPUTS
+Get-TspsApiTokenUserGroup will accept a value for the Token
+parameter from the pipeline.
 
 .NOTES
-General notes
+Cannot provide a valid example yet. Waiting for input from BMC
+to determine what the issue with this route of the API is.
 #>
 function Get-TspsApiTokenUserGroup
 {
@@ -346,7 +384,8 @@ function Get-TspsApiTokenUserGroup
     param(
         [Parameter(Mandatory=$true)]
         [string]$PresentationServer,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,
+        ValueFromPipeline)]
         [string]$Token,
         [switch]$Http,
         [switch]$FullResponse
@@ -378,7 +417,7 @@ function Get-TspsApiTokenUserGroup
     Switch($FullResponse.IsPresent)
     {
         True { return $response }
-        False { return $response }
+        False { return $response.usergroups }
     }
 }
 
@@ -388,46 +427,27 @@ function Get-TspsApiTokenUserGroup
  ### TSPS OmProvider route API calls ###
  #######################################
 
-
 <#
 .SYNOPSIS
-
 Simplifies calling the '.../tsws/10.0/api/omprovider/...'
 routes of the TrueSight API on the Presentation Server.
 
 .DESCRIPTION
-
 General function meant to simplify calling the '.../tsws/10.0/api/omprovider/...'
 routes of the TrueSight API on the Presentation Server. Can be used on its
 own, but is mainly meant to be used for building more specific cmdlets for
 unique types of tasks via the omproviders route of API.
 
 .PARAMETER PresentationServer
-
-TypeName: System.String
-
 The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Method
-
-TypeName: System.String
-
 The HTTP method used to call the specific route of the API.
 
 .PARAMETER OmProvider
-
-TypeName: System.String
-
 The specific sub-route of the omprovider route of the API.
-For 'POST' Method calls, query parameters should also be
-appended to this parameter.
-
-(This will likely be reworked in the future.)
 
 .PARAMETER QueryParameters
-
-TypeName: System.Collections.Hashtable
-
 The collection of query parameters for the request.
 The keys and values are appended to the URI and used
 as the query parameters.
@@ -435,50 +455,36 @@ as the query parameters.
 Default value is @{}
 
 .PARAMETER RequestParameters
-
-TypeName: System.Collections.Hashtable
-
 This hashtable is converted to JSON, and used as the body
-of the request sent. In cases like that, query parameters
-that are needed in addtion to the body should be appended
-to the OmProvider parameter, prefixed with a '?', and
-separated by a '&'. See examples for more details.
+of the request sent. Meant to contain request parameters
+that need to be sent in the body.
 
 Default value is @{}
 
 .PARAMETER Token
-
-TypeName: System.String
-
 A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies to use HTTP instead of HTTPS when
 calling the TrueSight API
 
 .INPUTS
-
 None. You cannot pipe objects to Invoke-TspsApiOmProvider.
 
 .OUTPUTS
-
 TypeName: System.Management.Automation.PSCustomObject
 
 Invoke-TspsApiOmProvider returns an object containing the
 response from the API, if the request was valid.
 
 .EXAMPLE
-
-PS>$QueryParameters = @{
+PS> $QueryParameters = @{
         tenantId = <Valid Tenant>
         deviceEntityType = "all"
         parentDeviceId = "-1"
     }
 
-PS>$params = @{
+PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         Method = 'GET'
         OmProvider = 'devices'
@@ -487,14 +493,32 @@ PS>$params = @{
         Http = $false
     }
 
-PS>Invoke-TspsApiOmProvider @params
+PS> Invoke-TspsApiOmProvider @params
 
 requestTimeStamp  : 2020-01-10T11:09:13
 responseTimeStamp : 2020-01-10T11:09:13
 statusCode        : 200
 statusMsg         : OK
 responseMsg       : Success
-responseContent   : @{deviceList=System.Object[]}        
+responseContent   : @{deviceList=System.Object[]}  
+
+.EXAMPLE
+PS> $RequestParameters = [hashtable]@{
+        tenantId = <Valid Tenant>
+        monUniqName = "NTProcessInfo"
+        instKeyList = @([hashtable]@{serverId=1; monTypeId=21023; monInstId=5})
+    }
+
+PS> $params = [hashtable]@{
+        PresentationServer = <TSPS Hostname or Alias>
+        Method = 'POST'
+        OmProvider = 'configdata'
+        RequestParameters = $RequestParameters
+        Token = <Valid Auth Token>
+        Http = $false
+    }
+
+PS> Invoke-TspsApiOmProvider @params
 #>
 function Invoke-TspsApiOmProvider
 {
@@ -562,103 +586,62 @@ function Invoke-TspsApiOmProvider
 
 ### Modified this function so that it can also use the separate
 ### components of the MonInstKey, just like Get-TspsApiMonitorInstance
+
 <#
 .SYNOPSIS
-
-Simplifies calling the '.../tsws/10.0/api/omprovider/configdata...'
-route of the TrueSight API on the Presentation Server.
+Pulls configuration data for monitoring instances.
 
 .DESCRIPTION
-
 Simplifies calling the '.../tsws/10.0/api/omprovider/configdata...'
 route of the TrueSight API on the Presentation Server. Requests
-configuration data about a monitoring instance using the 'MonInstKey',
+configuration data for a monitoring instance using the 'MonInstKey',
 provided either as a hashtable, or its three individual components.
 
 For more details on this specific route of the API, see:
 https://docs.bmc.com/docs/tsps113/retrieving-the-configuration-data-of-monitor-instances-765456179.html
 
 .PARAMETER PresentationServer
-
-TypeName: System.String
-
 The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-
-TypeName: System.String
-
 The TrueSight tenant that the user exists under.
 Default value is "*"
 
 .PARAMETER MonUniqName
-
-ParameterSet: UniqName
-TypeName: System.String
-
 Unique name for a specific monitor type. Can be retrieved from
 a specific monitor instance with Get-TspsApiMonitorInstance,
 or via Get-TspsApiMonitorType, which leverages the 'List Monitor
 Types' API route.
 
-(This will likely be reworked in the future.)
-
 .PARAMETER InstKeyList
-
-ParameterSet: KeyList
-TypeName: System.Collections.Hashtable
-
-A hashtable containing the ServerId, MonTypeId and MonInstId
-for a monitored instance.
+An array of hashtables containing the MonInstKeys which each contain
+the ServerId, MonTypeId and MonInstId for monitored instances.
+Can also accept just a single MonInstKey.
 
 .PARAMETER ServerId
-
-ParameterSet: KeyListItems
-TypeName: System.String
-
 The ServerId for a monitored instance.
 
 .PARAMETER MonTypeId
-
-ParameterSet: KeyListItems
-TypeName: System.String
-
 The MonTypeId for a monitored instance
 
 .PARAMETER MonInstId
-
-ParameterSet: KeyListItems
-TypeName: System.String
-
 The MonInstId for a monitored instance
 
 .PARAMETER Token
-
-TypeName: System.String
-
 A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-
-TypeName: System.Management.Automation.SwitchParameter
-
 A switch that specifies to use HTTP instead of HTTPS when
 calling the TrueSight API
 
 .PARAMETER FullResponse
-
-TypeName: System.Management.Automation.SwitchParameter
-
-A switch that specifies whether to return the entire response
-from the API, or just the 'responseContent' property of the 
-response.
+A switch that specifies whether to return the entire response from
+the API, or just the 'responseContent' property of the response.
 
 .INPUTS
-
 None. You cannot pipe objects to Get-TspsApiMonitorInstanceConfiguration.
 
 .OUTPUTS
-
 TypeName: System.Management.Automation.PSCustomObject
 
 Get-TspsApiMonitorInstanceConfiguration returns an object containing the
@@ -670,24 +653,44 @@ returns the full response from the API, not just the 'responseContent'
 property.
 
 .EXAMPLE
+PS> $keylist = [hashtable]@{serverId=1; monTypeId=21013; monInstId=12}
 
-PS>$keylist = [hashtable]@{serverId=1; monTypeId=21013; monInstId=12}
-
-PS>$params = @{
+PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         InstKeyList = $keylist
         Token = <Valid Auth Token>
     }
 
-PS>Get-TspsApiMonitorInstanceConfiguration @params
+PS> Get-TspsApiMonitorInstanceConfiguration @params
 
 monUniqName monInstName
 ----------- -----------                                                        
 NTDiskSpace Drive = C:\Program Files\BMC Software\TrueSight...
 
 .EXAMPLE
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        MonUniqName = "NTProcessInfo"
+        Token = <Valid Auth Token>
+    }
 
-PS>$params = @{
+PS> Get-TspsApiMonitorInstanceConfiguration @params
+
+monUniqName   monInstName monInstKey                                   attribut
+                                                                       eMap    
+-----------   ----------- ----------                                   --------
+NTProcessInfo mcell       @{serverId=1; monTypeId=21023; monInstId=10} @{MAT...
+NTProcessInfo httpd       @{serverId=1; monTypeId=21023; monInstId=2}  @{MAT...
+NTProcessInfo jserver     @{serverId=1; monTypeId=21023; monInstId=3}  @{MAT...
+NTProcessInfo pronet_cntl @{serverId=1; monTypeId=21023; monInstId=4}  @{MAT...
+NTProcessInfo rate        @{serverId=1; monTypeId=21023; monInstId=5}  @{MAT...
+NTProcessInfo tunnelproxy @{serverId=1; monTypeId=21023; monInstId=6}  @{MAT...
+NTProcessInfo services    @{serverId=1; monTypeId=21023; monInstId=7}  @{MAT...
+NTProcessInfo PnAgent     @{serverId=1; monTypeId=21023; monInstId=8}  @{MAT...
+NTProcessInfo PwTray      @{serverId=1; monTypeId=21023; monInstId=9}  @{MAT...
+
+.EXAMPLE
+PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         ServerId = 1
         MonTypeId = 21013
@@ -695,11 +698,31 @@ PS>$params = @{
         Token = <Valid Auth Token>
     }
 
-PS>Get-TspsApiMonitorInstanceConfiguration @params
+PS> Get-TspsApiMonitorInstanceConfiguration @params
 
 monUniqName monInstName
 ----------- -----------                                                        
 NTDiskSpace Drive = C:\Program Files\BMC Software\TrueSight...
+
+.EXAMPLE
+PS> $keylistArr = @(
+    @{serverId=1; monTypeId=21023; monInstId=5},
+    @{serverId=1; monTypeId=21023; monInstId=3}
+)
+
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        InstKeyList = $keylistArr
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiMonitorInstanceConfiguration @params
+
+monUniqName   monInstName monInstKey                                  attribute
+                                                                      Map      
+-----------   ----------- ----------                                  ---------
+NTProcessInfo rate        @{serverId=1; monTypeId=21023; monInstId=5} @{MATC...
+NTProcessInfo jserver     @{serverId=1; monTypeId=21023; monInstId=3} @{MATC...
 #>
 function Get-TspsApiMonitorInstanceConfiguration
 {
@@ -714,7 +737,7 @@ function Get-TspsApiMonitorInstanceConfiguration
         [string]$MonUniqName="",
         [Parameter(Mandatory=$true,
         ParameterSetName='KeyList')]
-        [hashtable]$InstKeyList=@{},
+        [hashtable[]]$InstKeyList=@(@{}),
         [Parameter(Mandatory=$true,
         ParameterSetName='KeyListItems')]
         [ValidateNotNullOrEmpty()]
@@ -733,22 +756,28 @@ function Get-TspsApiMonitorInstanceConfiguration
         [switch]$Http,
         [switch]$FullResponse
     )
-
-    if ($PSCmdlet.ParameterSetName -match 'KeyListItems')
-    {
-        $InstKeyList= [hashtable]@{
-            serverId = $ServerId
-            monTypeId = $MonTypeId
-            monInstId = $MonInstId
-        }
-    }
-
+    
     $RequestParameters = [hashtable]@{
         tenantId = $Tenant
-        monUniqName = $MonUniqName
-        instKeyList = @($InstKeyList)
+        monUniqName = ""
+        instKeyList = @(@{})
     }
 
+    Switch($PSCmdlet.ParameterSetName)
+    {
+        'KeyListItems' {
+            $InstKeyList= [hashtable]@{
+                serverId = $ServerId
+                monTypeId = $MonTypeId
+                monInstId = $MonInstId
+            }
+
+            $RequestParameters.'instKeyList' = @($InstKeyList)
+        }
+        'KeyList' { $RequestParameters.'instKeyList' = @($InstKeyList) }
+        'UniqName' { $RequestParameters.'monUniqName' = $MonUniqName }
+    }
+    
     $params = [hashtable]@{
         PresentationServer = $PresentationServer
         Method = 'POST'
@@ -769,57 +798,94 @@ function Get-TspsApiMonitorInstanceConfiguration
 
 
 ### This route of the API does not work as documented. It works if you
-### use the DeviceId, the MonUniqName, or the combination of both but,
+### use the DeviceId, the MonUniqName, or the combination of both. But
 ### passing in the ServerId, MonTypeId, and MonInstId does not work as it
 ### should. Supposedly you can make it work if you use the server name
 ### BMC has noted this as a defect and will address it in
 ### a future release.
 ### Current release at the time of this writing is 11.3.02.
+
 <#
 .SYNOPSIS
-Short description
+Pulls a list of monitored instances.
 
 .DESCRIPTION
-Long description
+Simplifies calling the '.../tsws/10.0/api/omprovider/instances' route of
+the TSOM API. Pulls a list of monitored instances using the MonInstKey,
+provided either as a hashtable, or its three individual components.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/tsps113/retrieving-the-list-of-monitor-instances-765456181.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-Parameter description
+The TrueSight tenant that the user exists under.
+Default value is "*"
 
 .PARAMETER DeviceId
-Parameter description
+The device ID the target monitored instance belongs to.
 
 .PARAMETER MonUniqName
-Parameter description
+Unique name for a specific monitor type. Can be retrieved from
+a specific monitor instance with Get-TspsApiMonitorInstance,
+or via Get-TspsApiMonitorType, which leverages the 'List Monitor
+Types' API route.
 
-.PARAMETER InstKeyList
-Parameter description
+.PARAMETER InstKey
+A hashtable containing a MonInstKey, which contains the ServerId,
+MonTypeId, and MonInstId for a single monitored instance.
+Currently the use of this parameter is broken, due to a defect
+with the TSOM API. BMC is working on correcting this.
 
 .PARAMETER ServerId
-Parameter description
+The ServerId for a monitored instance.
 
 .PARAMETER MonTypeId
-Parameter description
+The MonTypeId for a monitored instance
 
 .PARAMETER MonInstId
-Parameter description
+The MonInstId for a monitored instance
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response
+from the API, or just the 'responseContent.instanceList' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        DeviceId = 1
+        MonUniqName = 'NTProcessInfo'
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiMonitorInstance @params
+
+deviceId          : 1
+monUniqName       : NTProcessInfo
+monInstName       : tunnelproxy
+isMarkedForDelete : False
+monInstKey        : @{serverId=1; monTypeId=21023; monInstId=6}
+
+deviceId          : 1
+monUniqName       : NTProcessInfo
+monInstName       : rate
+isMarkedForDelete : False
+monInstKey        : @{serverId=1; monTypeId=21023; monInstId=5}
+...
 
 .NOTES
-General notes
+Currently the use of the InstKey parameter is broken, due to a
+defect with the TSOM API. BMC is working on correcting this.
 #>
 function Get-TspsApiMonitorInstance
 {
@@ -833,16 +899,16 @@ function Get-TspsApiMonitorInstance
         [string]$DeviceId="",
         [Parameter(ParameterSetName='DevIdOrMonName')]
         [string]$MonUniqName="",
-        [Parameter(ParameterSetName='KeyList')]
-        [hashtable]$InstKeyList=@{},
+        [Parameter(ParameterSetName='Key')]
+        [hashtable]$InstKey=@{},
         [Parameter(Mandatory=$true,
-        ParameterSetName='KeyListItems')]
+        ParameterSetName='KeyItems')]
         [string]$ServerId="",
         [Parameter(Mandatory=$true,
-        ParameterSetName='KeyListItems')]
+        ParameterSetName='KeyItems')]
         [string]$MonTypeId="",
         [Parameter(Mandatory=$true,
-        ParameterSetName='KeyListItems')]
+        ParameterSetName='KeyItems')]
         [string]$MonInstId="",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
@@ -868,12 +934,12 @@ function Get-TspsApiMonitorInstance
                 $QueryParameters.Add('monUniqName', $MonUniqName)
             }
         }
-        'KeyList' {
-            $QueryParameters.Add('serverId', $InstKeyList.ServerId)
-            $QueryParameters.Add('monTypeId', $InstKeyList.MonTypeId)
-            $QueryParameters.Add('monInstId', $InstKeyList.MonInstId)
+        'Key' {
+            $QueryParameters.Add('serverId', $InstKey.ServerId)
+            $QueryParameters.Add('monTypeId', $InstKey.MonTypeId)
+            $QueryParameters.Add('monInstId', $InstKey.MonInstId)
         }
-        'KeyListItems' {
+        'KeyItems' {
             $QueryParameters.Add('serverId', $ServerId)
             $QueryParameters.Add('monTypeId', $MonTypeId)
             $QueryParameters.Add('monInstId', $MonInstId)
@@ -901,36 +967,53 @@ function Get-TspsApiMonitorInstance
 
 <#
 .SYNOPSIS
-Short description
+Pulls the list of monitor types.
 
 .DESCRIPTION
-Long description
+Pulls a list of all available monitor types, including their name,
+monUniqName, and monitorCategory. Tenant is specified as *, even
+though * is the default, in order to demonstrate it can be set.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-Parameter description
+The TrueSight tenant that the user exists under.
+Default value is "*"
 
 .PARAMETER MonitorCategory
-Parameter description
+Filters returned list by category.
+Default value is "ALL"
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response
+from the API, or just the '.responseContent.monitorTypeList'
+property of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        Token = <Valid Auth Token>
+    }
 
-.NOTES
-General notes
+PS> Get-TspsApiMonitorType @params
+
+name                          monUniqueName         monitorCategory
+----                          -------------         ---------------
+OVDC-Status                   OVDC_STATUS           instance       
+AR Form                       _PATROL__ARS_FORM     instance       
+Storage                       STORAGE               instance       
+LINUX-UNIX shell script       _PATROL__TRO_SCRIPT   instance      
+...
 #>
-function Get-TspsApiMonitorType #####
+function Get-TspsApiMonitorType
 {
     [CmdletBinding()]
     param(
@@ -972,61 +1055,123 @@ function Get-TspsApiMonitorType #####
 
 <#
 .SYNOPSIS
-Short description
+Pulls performance data about monitor instances within a
+specific time window. (1 hour minimum, 72 hour max.)
 
 .DESCRIPTION
-Long description
+Simplifies the calling of the '.../tsws/10.0/api/omprovider/perfdata'
+route of the TSOM API. Pulls performance data about monitor instances
+within a specific time window. (1 hour minimum, 72 hour max.)
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/tsps113/retrieving-the-performance-data-of-monitor-instances-765456184.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-Parameter description
+The TrueSight tenant that the user exists under.
+Default value is "*"
 
 .PARAMETER MonUniqName
-Parameter description
+Unique name for a specific monitor type. Can be retrieved from
+a specific monitor instance with Get-TspsApiMonitorInstance,
+or via Get-TspsApiMonitorType, which leverages the 'List Monitor
+Types' API route.
 
 .PARAMETER InstKeyList
-Parameter description
+An array of hashtables containing the MonInstKeys which each contain
+the ServerId, MonTypeId and MonInstId for monitored instances.
+Can also accept just a single MonInstKey.
 
 .PARAMETER ServerId
-Parameter description
+The ServerId for a monitored instance.
 
 .PARAMETER MonTypeId
-Parameter description
+The MonTypeId for a monitored instance
 
 .PARAMETER MonInstId
-Parameter description
+The MonInstId for a monitored instance
 
 .PARAMETER StartTime
-Parameter description
+A datetime object for start of the queried time range.
 
 .PARAMETER EndTime
-Parameter description
+A datetime object for end of the queried time range.
 
 .PARAMETER Type
-Parameter description
+The type of performance data.
+Currently only "rate" is supported by the API.
 
 .PARAMETER Computation
-Parameter description
+The computation method of the performance data.
+Currently only "avg" is supported by the API.
 
 .PARAMETER AttribUniqNameList
-Parameter description
+One or more attributes of the same monitor type
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'responseContent.instancePerfDataList' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $instKeyList = @(
+    @{serverId=1; monTypeId=21023; monInstId=5},
+    @{serverId=1; monTypeId=21023; monInstId=3}
+)
+
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        InstKeyList = $instKeyList
+        StartTime = (Get-Date).AddHours(-72)
+        EndTime = (Get-Date)
+        AttribUniqNameList = "PROC_CPU"
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiMonitorInstancePerformanceData @params
+
+monInstName instanceKey                      attribPerfDataList                            
+----------- -----------                      ------------------                            
+rate        @{serverId=1; monTypeId=21023... {@{attribUniqName=PROC_CPU; attribDisplayNa...
+jserver     @{serverId=1; monTypeId=21023... {@{attribUniqName=PROC_CPU; attribDisplayNa...
+
+.EXAMPLE
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        MonUniqName = 'NTProcessInfo'
+        StartTime = (Get-Date).AddHours(-72)
+        EndTime = (Get-Date)
+        AttribUniqNameList = "PROC_CPU"
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiMonitorInstancePerformanceData @params
+
+monInstName instanceKey                       attribPerfDataList                           
+----------- -----------                       ------------------                           
+services    @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+PwTray      @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+tunnelproxy @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+PnAgent     @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+jserver     @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+pronet_cntl @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+httpd       @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+rate        @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
+mcell       @{serverId=1; monTypeId=21023...  {@{attribUniqName=PROC_CPU; attribDisplayN...
 
 .NOTES
-General notes
+The valid total time range is supposed to be between 60 minutes
+and 72 hours. However, the valid floor (StartTime) does seem to
+vary depending on the run cycle for the monitor being queried.
 #>
 function Get-TspsApiMonitorInstancePerformanceData
 {
@@ -1039,7 +1184,7 @@ function Get-TspsApiMonitorInstancePerformanceData
         [Parameter(ParameterSetName='UniqName')]
         [string]$MonUniqName="",
         [Parameter(ParameterSetName='KeyList')]
-        [hashtable]$InstKeyList=@{},
+        [hashtable[]]$InstKeyList=@(@{}),
         [Parameter(Mandatory=$true,
         ParameterSetName='KeyListItems')]
         [ValidateNotNullOrEmpty()]
@@ -1058,7 +1203,9 @@ function Get-TspsApiMonitorInstancePerformanceData
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [datetime]$EndTime,
+        [ValidateSet("rate")]
         [string]$Type="rate",
+        [ValidateSet("avg")]
         [string]$Computation="avg",
         [ValidateNotNullOrEmpty()]
         [string[]]$AttribUniqNameList,
@@ -1068,6 +1215,17 @@ function Get-TspsApiMonitorInstancePerformanceData
         [switch]$Http,
         [switch]$FullResponse
     )
+
+    $totalTimeRange = New-TimeSpan -Start $StartTime -End $EndTime
+
+    if ($totalTimeRange.TotalSeconds -gt 259200 `
+        -or $totalTimeRange.TotalSeconds -lt 3600)
+    {
+        Write-Error ("Invalid time range. Must be between 60 minutes " + `
+            " and 72 hours. See NOTES in 'Get-Help Get-TspsApiMonitor" + `
+            "InstancePerformanceData -Full' for more details.")
+        return
+    }
 
     if ($PSCmdlet.ParameterSetName -match 'KeyListItems')
     {
@@ -1083,13 +1241,28 @@ function Get-TspsApiMonitorInstancePerformanceData
 
     $RequestParameters = [hashtable]@{
         tenantId = $Tenant
-        monUniqName = $MonUniqName
-        instKeyList = @($InstKeyList)
+        monUniqName = ""
+        instKeyList = @([hashtable]@{})
         startTime = $unixStartTime
         endTime = $unixEndTime
         type = $Type
         computation = $Computation
         attribUniqNameList = $AttribUniqNameList
+    }
+
+    Switch($PSCmdlet.ParameterSetName)
+    {
+        'KeyListItems' {
+            $InstKeyList= [hashtable]@{
+                serverId = $ServerId
+                monTypeId = $MonTypeId
+                monInstId = $MonInstId
+            }
+
+            $RequestParameters.'instKeyList' = @($InstKeyList)
+        }
+        'KeyList' { $RequestParameters.'instKeyList' = @($InstKeyList) }
+        'UniqName' { $RequestParameters.'monUniqName' = $MonUniqName }
     }
 
     $params = [hashtable]@{
@@ -1106,7 +1279,7 @@ function Get-TspsApiMonitorInstancePerformanceData
     Switch($FullResponse.IsPresent)
     {
         True { return $response }
-        False { return $response.responseContent }
+        False { return $response.responseContent.instancePerfDataList }
     }
 }
 
@@ -1145,7 +1318,7 @@ An example
 .NOTES
 General notes
 #>
-function Get-TspsApiDevices
+function Get-TspsApiDevices ####
 {
     [CmdletBinding()]
     param(
@@ -1248,6 +1421,7 @@ function Get-TspsApiTenants
  #########################################
  ### TSPS UnifiedAdmin route API calls ###
  #########################################
+
 <#
 .SYNOPSIS
 Short description
@@ -1541,6 +1715,7 @@ function Get-TspsApiPolicyDetails
 ### Build function to update policy. Uses PUT method, so
 ### I may need to edit the Invoke-TspsApiUnifiedAdmin
 ### function, or write a function that stands on its own.
+
 <#
 .SYNOPSIS
 Short description
@@ -1636,6 +1811,7 @@ function Set-TspsApiPolicyDetails
 ### Patrol Agent details. With the lack of more detailed
 ### documentation on this route, I've not been able to
 ### build more robust options into it.
+
 <#
 .SYNOPSIS
 Short description
@@ -1708,6 +1884,7 @@ function Get-TspsApiServerDetails
 ### takes the data returned, then iterates over it to only
 ### return the patrol agents that match the filter in one
 ### consolidated array.
+
 <#
 .SYNOPSIS
 Short description
@@ -1838,9 +2015,9 @@ function Clear-TspsApiAuthToken
 ###                    TSIM API Functions                     ###
 #################################################################
 
-
 ### Might need to be edited for the POSTs, depending
 ### on how POSTs behave for the TSIM API
+
 <#
 .SYNOPSIS
 Short description

@@ -41,46 +41,40 @@ Get-TspsApiTokenUserGroup -PresentationServer $tsps -Token $token
 Get-TspsApiMonitorInstanceConfiguration -PresentationServer $tsps `
    -MonUniqName "NTProcessInfo" -Token $token
 
-### keylist variable is set to a MonInstKey, which can be found
+### instKey variable is set to a MonInstKey, which can be found
 ### via the above call example, as well as through several others.
 ### Values set here are examples from my development environment
 ### and likely will not work for others.
 
-$keylist = [hashtable]@{serverId=1; monTypeId=21023; monInstId=5}
+$instKey = [hashtable]@{serverId=1; monTypeId=21023; monInstId=5}
 
-### Uses a MonInstKey assinged to the keylist variable to pull
+### Uses a MonInstKey assinged to the instKey variable to pull
 ### configuration information for a specific monitoring instance.
 
 Get-TspsApiMonitorInstanceConfiguration -PresentationServer $tsps `
-   -InstKeyList $keylist -Token $token
+   -InstKeyList $instKey -Token $token
+
+### Can also pull multiple monitoring instances if an array (list)
+### of InstKeyLists is provided to the InstKeyList parameter.
+
+$instKeyList = @(
+   @{serverId=1; monTypeId=21023; monInstId=5},
+   @{serverId=1; monTypeId=21023; monInstId=3}
+)
+
+Get-TspsApiMonitorInstanceConfiguration -PresentationServer $tsps `
+   -InstKeyList $instKeyList -Token $token
 
 ### Uses a the three individual values of a MonInstKey (serverId 
 ### monTypeId, and monInstId) to pull configuration information for
 ### a specific monitoring instance. Note these are the same values
-### assigned to the keylist variable above. This is to demonstrate
+### assigned to the instKey variable above. This is to demonstrate
 ### that the function can be used both ways.
 
 Get-TspsApiMonitorInstanceConfiguration -PresentationServer $tsps `
-   -ServerId 1 -MonTypeId 21023 -MonInstId $keylist.monInstId `
+   -ServerId 1 -MonTypeId 21023 -MonInstId $instKey.monInstId `
    -Token $token
-
-######################################################################
-
-### Pulls performance data for monitored instances that share the
-### MonUniqName of NTProcessInfo, and has the PROC_CPU attribute.
-
-Get-TspsApiMonitorInstancePerformanceData -PresentationServer $tsps `
-   -MonUniqName 'NTProcessInfo' -StartTime (Get-Date).AddHours(-12) `
-   -EndTime (Get-Date) -AttribUniqNameList @("PROC_CPU") -Token $token
-
-### Pulls performance data for the PROC_CPU attribute of a specific
-### monitored instances, designated by the 'MonInstKey' provided via
-### the keylist variable, which is defined in an example above.
-
-Get-TspsApiMonitorInstancePerformanceData -PresentationServer $tsps `
-   -InstKeyList $keylist -StartTime (Get-Date).AddHours(-12) `
-   -EndTime (Get-Date) -AttribUniqNameList @("PROC_CPU") -Token $token
-
+   
 ######################################################################
 
 ### Pulls details for monitored instances for DeviceId 1, with a
@@ -96,7 +90,24 @@ Get-TspsApiMonitorInstance -PresentationServer $tsps -Tenant "*" `
 ### That said, whenever the defect is patched, this will work.
 
 Get-TspsApiMonitorInstance -PresentationServer $tsps `
-   -InstKeyList $keylist -Token $token -FullResponse
+   -InstKey $instKey -Token $token -FullResponse
+
+######################################################################
+
+### Pulls performance data for monitored instances that share the
+### MonUniqName of NTProcessInfo, and has the PROC_CPU attribute.
+
+Get-TspsApiMonitorInstancePerformanceData -PresentationServer $tsps `
+-MonUniqName 'NTProcessInfo' -StartTime (Get-Date).AddHours(-12) `
+-EndTime (Get-Date) -AttribUniqNameList "PROC_CPU" -Token $token
+
+### Pulls performance data for the PROC_CPU attribute of a specific
+### monitored instances, designated by the 'MonInstKey' provided via
+### the instKeyList variable, which is defined in an example above.
+
+Get-TspsApiMonitorInstancePerformanceData -PresentationServer $tsps `
+-InstKeyList $instKeyList -StartTime (Get-Date).AddHours(-12) `
+-EndTime (Get-Date) -AttribUniqNameList "PROC_CPU" -Token $token
 
 ######################################################################
 
