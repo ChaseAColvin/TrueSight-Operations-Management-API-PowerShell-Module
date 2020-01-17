@@ -436,7 +436,7 @@ routes of the TrueSight API on the Presentation Server.
 General function meant to simplify calling the '.../tsws/10.0/api/omprovider/...'
 routes of the TrueSight API on the Presentation Server. Can be used on its
 own, but is mainly meant to be used for building more specific cmdlets for
-unique types of tasks via the omproviders route of API.
+unique types of tasks done via the omproviders route of API.
 
 .PARAMETER PresentationServer
 The hostname or alias for the TrueSight Presentation Server.
@@ -451,14 +451,12 @@ The specific sub-route of the omprovider route of the API.
 The collection of query parameters for the request.
 The keys and values are appended to the URI and used
 as the query parameters.
-
 Default value is @{}
 
 .PARAMETER RequestParameters
 This hashtable is converted to JSON, and used as the body
 of the request sent. Meant to contain request parameters
 that need to be sent in the body.
-
 Default value is @{}
 
 .PARAMETER Token
@@ -1286,39 +1284,78 @@ function Get-TspsApiMonitorInstancePerformanceData
 
 <#
 .SYNOPSIS
-Short description
+Pulls the list of devices.
 
 .DESCRIPTION
-Long description
+Simplifies the calling of the '.../tsws/10.0/api/omprovider/devices'
+route of the TSOM API. Pulls the list of devices accessible to the
+user specified by the authToken supplied with the Token parameter.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/tsps113/retrieving-the-list-of-devices-765456180.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Tenant
-Parameter description
+The TrueSight tenant that the user exists under.
+Default value is "*"
 
 .PARAMETER DeviceEntityType
-Parameter description
+Entry fom the list of valid device entity types. See:
+https://docs.bmc.com/docs/tsps113/retrieving-the-list-of-devices-765456180.html#Retrievingthelistofdevices-Validdeviceentitytypes
+
+To get devices of all entity types, set the parameter to "all".
+Default value is "all"
 
 .PARAMETER ParentDeviceId
-Parameter description
+Device ID of the parent device.
+    -1 ignores the parent device and displays all devices
+    0 displays all devices that do not have a parent device
+Default value is "-1"
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'responseContent.deviceList' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        Token = <Valid Auth Token>
+    }
 
-.NOTES
-General notes
+PS> Get-TspsApiDevices @params
+
+deviceId          : 1
+dnsName           : hostname1.domain.com
+dispName          : hostname1.domain.com
+ipAddress         : 1.1.1.1
+deviceEntityType  : Default
+deviceType        : 0
+parentDeviceId    : 0
+isMarkedForDelete : False
+tokenList         : {@{tokenId=; serverId=1; hostId=1}}
+
+deviceId          : 28
+dnsName           : hostname28.domain.com
+dispName          : hostname28.domain.com
+ipAddress         : 111.111.111.111
+deviceEntityType  : Default
+deviceType        : 0
+parentDeviceId    : 0
+isMarkedForDelete : False
+tokenList         : {@{tokenId=; serverId=1; hostId=54}}
+...
 #>
-function Get-TspsApiDevices ####
+function Get-TspsApiDevices
 {
     [CmdletBinding()]
     param(
@@ -1362,28 +1399,45 @@ function Get-TspsApiDevices ####
 
 <#
 .SYNOPSIS
-Short description
+Pulls the list of tenants from the TrueSight Presentation Server.
 
 .DESCRIPTION
-Long description
+Simplifies the calling of the '.../tsws/10.0/api/omprovider/tenants'
+route of the TSOM API. Pulls the list of tenants from the TrueSight
+Presentation Server. The permissions granted for the administrator
+who makes the request determines which tenants appear in the JSON
+response. For example, an administrator for the Acme account could
+not see the tenants in the Calbro account.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/tsps113/retrieving-the-list-of-tenants-765456183.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'responseContent.tenantList' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        Token = <Valid Auth Token>
+    }
 
-.NOTES
-General notes
+PS> Get-TspsApiTenants @params
+
+tenantId
+--------
+*       
 #>
 function Get-TspsApiTenants
 {
@@ -1424,37 +1478,84 @@ function Get-TspsApiTenants
 
 <#
 .SYNOPSIS
-Short description
+Simplifies calling the '.../tsws/10.0/api/unifiedadmin/...'
+routes of the TrueSight API on the Presentation Server.
 
 .DESCRIPTION
-Long description
+General function meant to simplify calling the '.../tsws/10.0/api/unifiedadmin/...'
+routes of the TrueSight API on the Presentation Server. Can be used on its
+own, but is mainly meant to be used for building more specific cmdlets for
+unique types of tasks done via the unifiedadmin route of API.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Method
-Parameter description
+The HTTP method used to call the specific route of the API.
 
 .PARAMETER AdminRoute
-Parameter description
+The specific sub-route of the unifiedadmin route of the API.
 
 .PARAMETER QueryParameters
-Parameter description
+The collection of query parameters for the request.
+The keys and values are appended to the URI and used
+as the query parameters.
+Default value is @{}
 
 .PARAMETER RequestParameters
-Parameter description
+This hashtable is converted to JSON, and used as the body
+of the request sent. Meant to contain request parameters
+that need to be sent in the body.
+Default value is @{}
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .EXAMPLE
-An example
+PS> $QueryParameters = [hashtable]@{
+    responseType = 'basic'
+}
 
-.NOTES
-General notes
+PS> $RequestParameters = [hashtable]@{
+    filterCriteria = [hashtable]@{
+        policyEnabledStatus = "ANY"
+        policySharedStatus = "ANY"
+        monitoringSolutionName = ""
+        monitoringSolutionVersion = ""
+        monitoringProfile = ""
+        monitoringType = ""
+        tenantId = "*"
+    }
+    stringToSearch = "Test"
+    fieldToSearch = "name"
+    type = "monitoringPolicy"
+}
+
+PS> $params = [hashtable]@{
+    PresentationServer = <TSPS Hostname or Alias>
+    Method = 'POST'
+    AdminRoute = 'Policy/list'
+    QueryParameters = $QueryParameters
+    RequestParameters = $RequestParameters
+    Token = <Valid Auth Token>
+    Http = $false
+}
+
+PS> Invoke-TspsApiUnifiedAdmin @params
+
+resourceId       : 5976e4a4-c906-4f15-968b-ef222dffc15b
+resourceName     : 999_ApiManagementTestPolicy
+statusCode       : 200
+statusMsg        : OK
+monitoringPolicy : @{id=5976e4a4-c906-4f15-968b-ef222dffc15b; name=999_ApiManagementTestPolicy; 
+                   type=monitoring; description=Blah blah blah, this is a test 2.; tenant=; 
+                   precedence=999; agentSelectionCriteria=agentOS CONTAINS "Windows" ; 
+                   associatedUserGroup=Administrators; owner=jsnover; creationTime=1577487083395; 
+                   enabled=False; shared=False}
 #>
 function Invoke-TspsApiUnifiedAdmin
 {
@@ -1515,60 +1616,169 @@ function Invoke-TspsApiUnifiedAdmin
 }
 
 
+#!# TODO: Build a function that leverages the '.../tsws/10.0/api/unifiedadmin/Solutions/list'
+#.# route of the API. The need for this is called out in the description for the
+#.# monitoringSolutionName parameter in the help information for Get-TspsApiAllPolicies below.
+
 <#
 .SYNOPSIS
-Short description
+Pulls information about all the policies
 
 .DESCRIPTION
-Long description
+Simplifies the calling of the '.../tsws/10.0/api/unifiedadmin/Policy/list?...'
+route of the TSOM API. Pulls information about all the policies.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/listing-details-for-all-the-policies-774798606.html
 
 .PARAMETER PresentationServer
-Parameter description
-
-.PARAMETER PolicyEnabledStatus
-Parameter description
-
-.PARAMETER PolicySharedStatus
-Parameter description
-
-.PARAMETER MonitoringSolutionName
-Parameter description
-
-.PARAMETER MonitoringSolutionVersion
-Parameter description
-
-.PARAMETER MonitoringProfile
-Parameter description
-
-.PARAMETER MonitoringType
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER TenantId
-Parameter description
+Lists all the policies based on the tenant name included in the policy.
+Default value is "*"
+
+.PARAMETER PolicyEnabledStatus
+Lists all the policies based on the policy status.
+Can be one of the following:
+    ENABLED: Lists all the policies that are enabled.
+    DISABLED: Lists all the policies that are disabled.
+    ANY: Lists all the policies irrespective of whether they are enabled or
+         disabled.
+Default value is "ANY"
+
+.PARAMETER PolicySharedStatus
+Lists all the policies based on whether those policies are shared with a user
+group.
+Can be one of the following:
+    SHARED: Lists all the policies that are shared with a user group.
+    NON_SHARED: Lists all the policies that are not shared with a user group.
+    ANY: Lists all the policies irrespective of whether they are shared with
+         a user group or not.
+Default value is "ANY"
+
+.PARAMETER MonitoringSolutionName
+Lists all the policies based on the monitoring solution name specified.
+
+To understand the valid values for the monitoring solution name, you need to
+run the function/API that lists all the solution names.
+(A function for this is not built out, as of 2020/01/16)
+
+For more information, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/listing-monitoring-solution-details-for-policies-809537412.html
+
+.PARAMETER MonitoringSolutionVersion
+Lists all the policies based on the monitoring solution version.
+
+Note: If you specify the monitoring solution name, then this value must correspond
+to the monitoring solution name specified.
+
+.PARAMETER MonitoringProfile
+Lists all the policies based on the monitor profile.
+
+Note: If you specify the monitoring solution name, then this value must correspond
+to the monitoring solution name specified.
+
+.PARAMETER MonitoringType
+Lists all the policies based on the monitor type.
+
+Note: If you specify the monitoring solution name, then this value must correspond
+to the monitoring solution name specified.
 
 .PARAMETER StringToSearch
-Parameter description
+Lists policies based on a string of characters included in a list of selected fields in the policies.
+
+The FieldToSearch parameter determines the fields in which the string is searched.
+Default value is "". Will pull all policies with this value.
 
 .PARAMETER FieldToSearch
-Parameter description
+Lists policies based on whether the string specified in the stringToSearch parameter
+is present in the field names specified.
+This value can be a comma-separated list of field names.
+
+Valid values:
+    name: Refers to the Name field.
+    description: Refers to the Description field.
+    agentSelectionCriteria: Refers to the Agent Selection Criteria field.
+    tenant: Refers to the Tenant field.
+    owner: Refers to the Owner field.
+           (Column name on the Infrastructure Policies page)
+    userGroups: Refers to the User Group field.
+                (Column name on the Infrastructure Policies page)
 
 .PARAMETER PolicyType
-Parameter description
+Lists policies based on the policy type.
+Can be one of the following:
+    BLACKOUTPOLICY: Refers to blackout policies.
+    MONITORINGPOLICY: Refers to monitoring policies.
+    STAGINGPOLICY: Refers to staging policies.
+Default value is "MONITORINGPOLICY"
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'response.policyList' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiAllPolicies @params
+
+resourceId       : 5976e4a4-c906-4f15-968b-ef222dffc15b
+resourceName     : 999_ApiManagementTestPolicy
+statusCode       : 200
+statusMsg        : OK
+monitoringPolicy : @{id=5976e4a4-c906-4f15-968b-ef222dffc15b; name=999_ApiManagementTestPolicy; 
+                   type=monitoring; description=Blah blah blah, this is a test 2.; tenant=; 
+                   precedence=999; agentSelectionCriteria=agentOS CONTAINS "Windows" ; 
+                   associatedUserGroup=Administrators; owner=jsnover; creationTime=1577487083395; 
+                   enabled=False; shared=False}
+
+resourceId       : 95a16c04-48eb-43f4-b0de-beb749f914b0
+resourceName     : 510_Windows-Common
+statusCode       : 200
+statusMsg        : OK
+monitoringPolicy : @{id=95a16c04-48eb-43f4-b0de-beb749f914b0; name=510_Windows-Common; 
+                   type=monitoring; description=Common OS monitors for Windows operating systems; 
+                   tenant=; precedence=510; agentSelectionCriteria=agentOS CONTAINS "Windows" ; 
+                   associatedUserGroup=Administrators; owner=jsnover; creationTime=1575925212590; 
+                   enabled=False; shared=False}
+...
+
+.EXAMPLE
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        StringToSearch = "Test"
+        FieldToSearch = "name,description"
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiAllPolicies @params
+
+resourceId       : 5976e4a4-c906-4f15-968b-ef222dffc15b
+resourceName     : 999_ApiManagementTestPolicy
+statusCode       : 200
+statusMsg        : OK
+monitoringPolicy : @{id=5976e4a4-c906-4f15-968b-ef222dffc15b; name=999_ApiManagementTestPolicy; 
+                   type=monitoring; description=Blah blah blah, this is a test 2.; tenant=; 
+                   precedence=999; agentSelectionCriteria=agentOS CONTAINS "Windows" ; 
+                   associatedUserGroup=Administrators; owner=jsnover; creationTime=1577487083395; 
+                   enabled=False; shared=False}
 
 .NOTES
-General notes
+This function still needs to be expanded to take advantage of the withCount
+and forSearch header parameters. Currently these are not specified, and thus
+use the defaults specified by the API itself.
 #>
 function Get-TspsApiAllPolicies
 {
@@ -1577,6 +1787,7 @@ function Get-TspsApiAllPolicies
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PresentationServer,
+        [string]$TenantId = "*",
         [ValidateSet("ENABLED","DISABLED","ANY")]
         [string]$PolicyEnabledStatus = "ANY",
         [ValidateSet("SHARED","NON_SHARED","ANY")]
@@ -1585,11 +1796,10 @@ function Get-TspsApiAllPolicies
         [string]$MonitoringSolutionVersion = "",
         [string]$MonitoringProfile = "",
         [string]$MonitoringType = "",
-        [string]$TenantId = "*",
-        [string]$StringToSearch = "_",
+        [string]$StringToSearch = "",
         [ValidateSet("name","description","agentSelectionCriteria",
         "tenant","owner","userGroups")]
-        [string]$FieldToSearch = "name",
+        [string[]]$FieldToSearch = @("name"),
         [ValidateSet("monitoringPolicy","stagingPolicy","blackoutPolicy")]
         [string]$PolicyType = "monitoringPolicy",
         [Parameter(Mandatory=$true)]
@@ -1614,7 +1824,7 @@ function Get-TspsApiAllPolicies
             tenantId = $TenantId
         }
         stringToSearch = $StringToSearch
-        fieldToSearch = $FieldToSearch
+        fieldToSearch = (@($FieldToSearch) -join ',')
         type = $PolicyType
     }
 
@@ -1640,34 +1850,145 @@ function Get-TspsApiAllPolicies
 
 <#
 .SYNOPSIS
-Short description
+Pulls configuration data for a specific policy.
 
 .DESCRIPTION
-Long description
+Simplifies the calling of the '.../tsws/10.0/api/unifiedadmin/Policy/'.
+Pulls configuration data for a specific policy.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/listing-details-for-a-specific-policy-774798607.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER PolicyId
-Parameter description
+Identifier of the policy. You can provide multiple identifiers, separated by commas.
+The supported identifiers are as follows:
+    name of the policy
+    ID of the policy
 
 .PARAMETER PolicyIdType
-Parameter description
+Type of the identifier that you have provided in the request.
+The supported values are as follows:
+    "name"
+    "id"
+
+Default value is "name"
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'response.monitoringPolicy' property
+of the response.
 
 .EXAMPLE
-An example
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        PolicyIdType = 'id'
+        PolicyId = '5976e4a4-c906-4f15-968b-ef222dffc15b'
+        Token = <Valid Auth Token>
+    }
 
-.NOTES
-General notes
+PS> Get-TspsApiPolicyDetails @params
+
+id                     : 5976e4a4-c906-4f15-968b-ef222dffc15b
+name                   : 999_ApiManagementTestPolicy
+type                   : monitoring
+description            : Blah blah blah, this is a test 2.
+tenant                 : @{name=*; id=*}
+precedence             : 999
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1577487083395
+agentConfiguration     : @{agentDefaultAccountCredentials=DOMAIN\_Dev_Patrol_Agent_B/fakePa
+                         ssword; tag=; restartAgent=False; eventConfiguration=; 
+                         pollConfiguration=}
+monitorConfiguration   : @{configurations=System.Object[]}
+rulesetConfiguration   : @{rulesets=System.Object[]}
+enabled                : False
+shared                 : False
+
+.EXAMPLE
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        PolicyIdType = 'name'
+        PolicyId = '999_ApiManagementTestPolicy'
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiPolicyDetails @params
+
+id                     : 5976e4a4-c906-4f15-968b-ef222dffc15b
+name                   : 999_ApiManagementTestPolicy
+type                   : monitoring
+description            : Blah blah blah, this is a test 2.
+tenant                 : @{name=*; id=*}
+precedence             : 999
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1577487083395
+agentConfiguration     : @{agentDefaultAccountCredentials=DOMAIN\_Dev_Patrol_Agent_B/fakePa
+                         ssword; tag=; restartAgent=False; eventConfiguration=; 
+                         pollConfiguration=}
+monitorConfiguration   : @{configurations=System.Object[]}
+rulesetConfiguration   : @{rulesets=System.Object[]}
+enabled                : False
+shared                 : False
+
+.EXAMPLE
+PS> $params = @{
+        PresentationServer = <TSPS Hostname or Alias>
+        PolicyIdType = 'name'
+        PolicyId = '999_ApiManagementTestPolicy,510_Windows-Common'
+        Token = <Valid Auth Token>
+    }
+
+PS> Get-TspsApiPolicyDetails @params
+
+id                     : 5976e4a4-c906-4f15-968b-ef222dffc15b
+name                   : 999_ApiManagementTestPolicy
+type                   : monitoring
+description            : Blah blah blah, this is a test 2.
+tenant                 : @{name=*; id=*}
+precedence             : 999
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1577487083395
+agentConfiguration     : @{agentDefaultAccountCredentials=DOMAIN\_Dev_Patrol_Agent_B/fakePa
+                         ssword; tag=; restartAgent=False; eventConfiguration=; 
+                         pollConfiguration=}
+monitorConfiguration   : @{configurations=System.Object[]}
+rulesetConfiguration   : @{rulesets=System.Object[]}
+enabled                : False
+shared                 : False
+
+id                     : 95a16c04-48eb-43f4-b0de-beb749f914b0
+name                   : 510_Windows-Common
+type                   : monitoring
+description            : Common OS monitors for Windows operating systems
+tenant                 : @{name=*; id=*}
+precedence             : 510
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1575925212590
+agentConfiguration     : @{agentDefaultAccountCredentials=DOMAIN\_Patrol_Agent/fakePa
+                         ssword; tag=; restartAgent=True; eventConfiguration=; 
+                         pollConfiguration=}
+monitorConfiguration   : @{configurations=System.Object[]}
+rulesetConfiguration   : @{rulesets=System.Object[]}
+enabled                : False
+shared                 : False
 #>
 function Get-TspsApiPolicyDetails
 {
@@ -1678,10 +1999,9 @@ function Get-TspsApiPolicyDetails
         [string]$PresentationServer,
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [string]$PolicyId,
-        [Parameter(Mandatory=$true)]
+        [string[]]$PolicyId,
         [ValidateSet("name","id")]
-        [string]$PolicyIdType,
+        [string]$PolicyIdType="name",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Token,
@@ -1696,7 +2016,7 @@ function Get-TspsApiPolicyDetails
     $params = [hashtable]@{
         PresentationServer = $PresentationServer
         Method = 'GET'
-        AdminRoute = "Policy/$PolicyId/list"
+        AdminRoute = "Policy/$(@($PolicyId) -join ',')/list"
         QueryParameters = $QueryParameters
         Token = $Token
         Http = $Http.IsPresent
@@ -1711,10 +2031,6 @@ function Get-TspsApiPolicyDetails
     }
 }
 
-
-### Build function to update policy. Uses PUT method, so
-### I may need to edit the Invoke-TspsApiUnifiedAdmin
-### function, or write a function that stands on its own.
 
 <#
 .SYNOPSIS
