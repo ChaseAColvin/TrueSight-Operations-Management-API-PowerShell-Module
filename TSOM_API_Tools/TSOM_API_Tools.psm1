@@ -174,10 +174,14 @@ will return an object containing the full response from the
 API, not just the 'response.authToken' property.
 
 .EXAMPLE
+Request an auth token using a PSCredential object:
+
 PS> Request-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Credentials <PSCredential Object>
 _9k78f18d-b7b6-4aae-a4d7-61e43a6bafd8
 
 .EXAMPLE
+Request an auth token, being prompted for credentials:
+
 PS> Request-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Tenant <Valid Tenant>
 cmdlet Get-Credential at command pipeline position 1
 Supply values for the following parameters:
@@ -285,6 +289,8 @@ If the FullResponse switch is used, Confirm-TspsApiAuthToken
 will return the full response from the API as an object.
 
 .EXAMPLE
+Confirm an auth token:
+
 PS> Confirm-TspsApiAuthToken -PresentationServer <TSPS Hostname> -Token <Valid Token>
 
 username  tenantName
@@ -292,6 +298,8 @@ username  tenantName
 jsnover   *         
 
 .EXAMPLE
+Confirm an auth token, passing the token in via pipeline:
+
 PS> <Valid Token> | Confirm-TspsApiAuthToken -PresentationServer <TSPS Hostname>
 
 username  tenantName
@@ -476,6 +484,8 @@ Invoke-TspsApiOmProvider returns an object containing the
 response from the API, if the request was valid.
 
 .EXAMPLE
+Pull a list of all devices:
+
 PS> $QueryParameters = @{
         tenantId = <Valid Tenant>
         deviceEntityType = "all"
@@ -501,10 +511,12 @@ responseMsg       : Success
 responseContent   : @{deviceList=System.Object[]}  
 
 .EXAMPLE
+Pull a list of monitoring configurations that have the MonUniqName
+of "NTProcessInfo":
+
 PS> $RequestParameters = [hashtable]@{
         tenantId = <Valid Tenant>
         monUniqName = "NTProcessInfo"
-        instKeyList = @([hashtable]@{serverId=1; monTypeId=21023; monInstId=5})
     }
 
 PS> $params = [hashtable]@{
@@ -517,6 +529,19 @@ PS> $params = [hashtable]@{
     }
 
 PS> Invoke-TspsApiOmProvider @params
+
+monUniqName   monInstName monInstKey                                   attribut
+                                                                       eMap    
+-----------   ----------- ----------                                   --------
+NTProcessInfo mcell       @{serverId=1; monTypeId=21023; monInstId=10} @{MAT...
+NTProcessInfo httpd       @{serverId=1; monTypeId=21023; monInstId=2}  @{MAT...
+NTProcessInfo jserver     @{serverId=1; monTypeId=21023; monInstId=3}  @{MAT...
+NTProcessInfo pronet_cntl @{serverId=1; monTypeId=21023; monInstId=4}  @{MAT...
+NTProcessInfo rate        @{serverId=1; monTypeId=21023; monInstId=5}  @{MAT...
+NTProcessInfo tunnelproxy @{serverId=1; monTypeId=21023; monInstId=6}  @{MAT...
+NTProcessInfo services    @{serverId=1; monTypeId=21023; monInstId=7}  @{MAT...
+NTProcessInfo PnAgent     @{serverId=1; monTypeId=21023; monInstId=8}  @{MAT...
+NTProcessInfo PwTray      @{serverId=1; monTypeId=21023; monInstId=9}  @{MAT...
 #>
 function Invoke-TspsApiOmProvider
 {
@@ -651,6 +676,9 @@ returns the full response from the API, not just the 'responseContent'
 property.
 
 .EXAMPLE
+Pull a list of monitored instance configuration for a single 
+monitored instance that matches a provided MonInstKey:
+
 PS> $keylist = [hashtable]@{serverId=1; monTypeId=21013; monInstId=12}
 
 PS> $params = @{
@@ -666,6 +694,9 @@ monUniqName monInstName
 NTDiskSpace Drive = C:\Program Files\BMC Software\TrueSight...
 
 .EXAMPLE
+Pull a list of monitoring instance configurations that have the
+MonUniqName of "NTProcessInfo":
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         MonUniqName = "NTProcessInfo"
@@ -688,6 +719,9 @@ NTProcessInfo PnAgent     @{serverId=1; monTypeId=21023; monInstId=8}  @{MAT...
 NTProcessInfo PwTray      @{serverId=1; monTypeId=21023; monInstId=9}  @{MAT...
 
 .EXAMPLE
+Pull a list of monitored instance configurations a monitored instance
+that has a ServerId of 1, and MonTypeId of 21013, and a MonInstId of 12:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         ServerId = 1
@@ -703,6 +737,9 @@ monUniqName monInstName
 NTDiskSpace Drive = C:\Program Files\BMC Software\TrueSight...
 
 .EXAMPLE
+Pull a list of monitored instance configurations for monitored instances
+that match a list of provided MonInstKeys:
+
 PS> $keylistArr = @(
     @{serverId=1; monTypeId=21023; monInstId=5},
     @{serverId=1; monTypeId=21023; monInstId=3}
@@ -859,6 +896,9 @@ from the API, or just the 'responseContent.instanceList' property
 of the response.
 
 .EXAMPLE
+Pulls a list of monitoring instances that have the MonUniqName of
+"NTProcessInfo", with a deviceId of 1:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         DeviceId = 1
@@ -996,6 +1036,8 @@ from the API, or just the '.responseContent.monitorTypeList'
 property of the response.
 
 .EXAMPLE
+Pulls a list of all the valid monitor types:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         Token = <Valid Auth Token>
@@ -1121,6 +1163,10 @@ the API, or just the 'responseContent.instancePerfDataList' property
 of the response.
 
 .EXAMPLE
+Pull a list of monitoring performance data, for monitoring instances
+matching a list of MonInstKeys, and that contain the "PROC_CPU" unique 
+attribute, for the last 12 hours:
+
 PS> $instKeyList = @(
     @{serverId=1; monTypeId=21023; monInstId=5},
     @{serverId=1; monTypeId=21023; monInstId=3}
@@ -1129,7 +1175,7 @@ PS> $instKeyList = @(
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         InstKeyList = $instKeyList
-        StartTime = (Get-Date).AddHours(-72)
+        StartTime = (Get-Date).AddHours(-12)
         EndTime = (Get-Date)
         AttribUniqNameList = "PROC_CPU"
         Token = <Valid Auth Token>
@@ -1143,6 +1189,10 @@ rate        @{serverId=1; monTypeId=21023... {@{attribUniqName=PROC_CPU; attribD
 jserver     @{serverId=1; monTypeId=21023... {@{attribUniqName=PROC_CPU; attribDisplayNa...
 
 .EXAMPLE
+Pull a list of monitoring performance data, for monitoring instances
+ with a MonUniqName of "NTProcessInfo" that also have the "PROC_CPU"
+ unique attribute, for the last 72 hours:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         MonUniqName = 'NTProcessInfo'
@@ -1223,15 +1273,6 @@ function Get-TspsApiMonitorInstancePerformanceData
             " and 72 hours. See NOTES in 'Get-Help Get-TspsApiMonitor" + `
             "InstancePerformanceData -Full' for more details.")
         return
-    }
-
-    if ($PSCmdlet.ParameterSetName -match 'KeyListItems')
-    {
-        $InstKeyList = [hashtable]@{
-            serverId=$ServerId
-            monTypeId=$MonTypeId
-            monInstId=$MonInstId
-        }
     }
 
     $unixStartTime = Get-UnixTimeFromDateTime -Date $StartTime
@@ -1327,6 +1368,8 @@ the API, or just the 'responseContent.deviceList' property
 of the response.
 
 .EXAMPLE
+Pull a list of all devices:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         Token = <Valid Auth Token>
@@ -1428,6 +1471,8 @@ the API, or just the 'responseContent.tenantList' property
 of the response.
 
 .EXAMPLE
+Retreive a list of all available tenants:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         Token = <Valid Auth Token>
@@ -1516,6 +1561,8 @@ A switch that specifies to use HTTP instead of HTTPS when
 calling the TrueSight API
 
 .EXAMPLE
+Pull a list of all policies:
+
 PS> $QueryParameters = [hashtable]@{
     responseType = 'basic'
 }
@@ -1727,6 +1774,8 @@ the API, or just the 'response.policyList' property
 of the response.
 
 .EXAMPLE
+Retrieve a list of all monitoring policies:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         Token = <Valid Auth Token>
@@ -1756,6 +1805,9 @@ monitoringPolicy : @{id=95a16c04-48eb-43f4-b0de-beb749f914b0; name=510_Windows-C
 ...
 
 .EXAMPLE
+Pull a list of polices that have the word "Test" in either
+then name or the description:
+
 PS> $params = @{
         PresentationServer = <TSPS Hostname or Alias>
         StringToSearch = "Test"
@@ -1889,12 +1941,14 @@ the API, or just the 'response.monitoringPolicy' property
 of the response.
 
 .EXAMPLE
+Get a policy by ID:
+
 PS> $params = @{
-        PresentationServer = <TSPS Hostname or Alias>
-        PolicyIdType = 'id'
-        PolicyId = '5976e4a4-c906-4f15-968b-ef222dffc15b'
-        Token = <Valid Auth Token>
-    }
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyIdType = 'id'
+    PolicyId = '5976e4a4-c906-4f15-968b-ef222dffc15b'
+    Token = <Valid Auth Token>
+}
 
 PS> Get-TspsApiPolicyDetails @params
 
@@ -1917,12 +1971,14 @@ enabled                : False
 shared                 : False
 
 .EXAMPLE
+Get a policy by name:
+
 PS> $params = @{
-        PresentationServer = <TSPS Hostname or Alias>
-        PolicyIdType = 'name'
-        PolicyId = '999_ApiManagementTestPolicy'
-        Token = <Valid Auth Token>
-    }
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyIdType = 'name'
+    PolicyId = '999_ApiManagementTestPolicy'
+    Token = <Valid Auth Token>
+}
 
 PS> Get-TspsApiPolicyDetails @params
 
@@ -1945,12 +2001,14 @@ enabled                : False
 shared                 : False
 
 .EXAMPLE
+Get multiple policies by name:
+
 PS> $params = @{
-        PresentationServer = <TSPS Hostname or Alias>
-        PolicyIdType = 'name'
-        PolicyId = '999_ApiManagementTestPolicy,510_Windows-Common'
-        Token = <Valid Auth Token>
-    }
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyIdType = 'name'
+    PolicyId = '999_ApiManagementTestPolicy,510_Windows-Common'
+    Token = <Valid Auth Token>
+}
 
 PS> Get-TspsApiPolicyDetails @params
 
@@ -2034,37 +2092,165 @@ function Get-TspsApiPolicyDetails
 
 <#
 .SYNOPSIS
-Short description
+Takes in a pscustomobject to update a monitoring policy.
 
 .DESCRIPTION
-Long description
+Simplifies working with the
+'.../tsws/10.0/api/unifiedadmin/MonitoringPolicy/<id>/update?...'
+route of the TSOM API. Takes in a pscustomobject of the appropriate
+format to update an existing policy.
+
+For more details on this specific route of the API, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/updating-a-policy-774798609.html
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
+
+.PARAMETER PolicyType
+Type of policy that you want to update.
+The supported policy types are:
+    MonitoringPolicy — Indicates that you are updating a monitoring policy
+    BlackoutPolicy — Indicates that you are updating a blackout policy
+    StagingPolicy — indicates that you are updating a staging policy.
+
+Default value is "MonitoringPolicy"
 
 .PARAMETER PolicyId
-Parameter description
+Identifier of the policy. You can provide multiple identifiers, separated by commas.
+The supported identifiers are as follows:
+    name of the policy
+    ID of the policy
 
 .PARAMETER PolicyIdType
-Parameter description
+Type of the identifier that you have provided in the request.
+The supported values are as follows:
+    "name"
+    "id"
+
+Default value is "name"
 
 .PARAMETER PolicyData
-Parameter description
+A pscustomobject in the appropriate format containing the details
+of the policy to update. If the data is in JSON format, then first
+run that data through ConverFrom-Json before using for the value
+of this parameter.
+
+For more details, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/updating-a-policy-774798609.html#Updatingapolicy-InputparametersintheJSONformatfortheupdateAPI
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'response.monitoringPolicy' property
+of the response.
 
 .EXAMPLE
-An example
+Take JSON assigned to a variable, then convert that JSON to a
+pscustomobject (the output of ConvertFrom-Json), and then use
+that object to update a policy:
 
-.NOTES
-General notes
+PS> $updateJson = @"
+{
+    "id": "5976e4a4-c906-4f15-968b-ef222dffc15b",
+    "name": "999_ApiManagementTestPolicy",
+    "type": "monitoring",
+    "description": "Do or do not, there is no... spoon.",
+    "tenant": {
+        "name": "*",
+        "id": "*"
+    },
+    "precedence": 999,
+    "agentSelectionCriteria": "agentOS CONTAINS \"Windows\" ",
+    "associatedUserGroup": "Administrators",
+    "owner": "jsnover",
+    "creationTime": 1577487083395,
+    "agentConfiguration": {
+        "agentDefaultAccountCredentials": "DOMAIN\\_Dev_Patrol_Agent_B/fakePassword",
+        "tag": "",
+        "restartAgent": false,
+        "eventConfiguration": {
+            "forwardEvents": true,
+            "destinationType": "INTEGRATIONSERVICE",
+            "eventsFormatContainer": "BiiP3"
+        },
+        "pollConfiguration": {
+            "solutions": []
+        },
+        "action": "update"
+    },
+    "enabled": false,
+    "shared": false
+}
+"@
+
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyType = 'MonitoringPolicy'
+    PolicyId = '999_ApiManagementTestPolicy'
+    PolicyIdType = 'name'
+    PolicyData = ($updateJson | ConvertFrom-Json)
+    Token = <Valid Auth Token>
+}
+
+PS> Set-TspsApiPolicyDetails @params
+
+id                     : 5976e4a4-c906-4f15-968b-ef222dffc15b
+name                   : 999_ApiManagementTestPolicy
+type                   : monitoring
+description            : Do or do not, there is no... spoon.
+tenant                 : @{name=*; id=*}
+precedence             : 999
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1577487083395
+enabled                : False
+shared                 : False
+
+.EXAMPLE
+Pull an existing policy, edit one of it's properties, and
+then update the policy with the new configuration:
+
+PS> $getPolicyParams = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyId = '999_ApiManagementTestPolicy'
+    PolicyIdType = 'name'
+    Token = <Valid Auth Token>
+}
+
+PS> $policy = Get-TspsApiPolicyDetails @getPolicyParams
+
+PS> $policy.enabled = $true
+
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyType = 'MonitoringPolicy'
+    PolicyId = '999_ApiManagementTestPolicy'
+    PolicyIdType = 'name'
+    PolicyData = $policy
+    Token = <Valid Auth Token>
+}
+
+PS> Set-TspsApiPolicyDetails @params
+
+id                     : 5976e4a4-c906-4f15-968b-ef222dffc15b
+name                   : 999_ApiManagementTestPolicy
+type                   : monitoring
+description            : Do or do not, there is no... spoon.
+tenant                 : @{name=*; id=*}
+precedence             : 999
+agentSelectionCriteria : agentOS CONTAINS "Windows" 
+associatedUserGroup    : Administrators
+owner                  : jsnover
+creationTime           : 1577487083395
+enabled                : True
+shared                 : False
 #>
 function Set-TspsApiPolicyDetails
 {
@@ -2073,12 +2259,13 @@ function Set-TspsApiPolicyDetails
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PresentationServer,
+        [ValidateSet("MonitoringPolicy","BlackoutPolicy","StagingPoicy")]
+        [string]$PolicyType="MonitoringPolicy",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PolicyId,
-        [Parameter(Mandatory=$true)]
         [ValidateSet("name","id")]
-        [string]$PolicyIdType,
+        [string]$PolicyIdType="name",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [pscustomobject]$PolicyData,
@@ -2096,7 +2283,7 @@ function Set-TspsApiPolicyDetails
     $PolicyDataHashTable = [hashtable]@{}
     $PolicyData.psobject.properties | ForEach-Object `
     {
-        $PolicyDataHashTable[$_.Name] = $_.Value
+        $PolicyDataHashTable.Add($_.Name,$_.Value)
     }
 
     $RequestParameters = [hashtable]@{
@@ -2106,7 +2293,7 @@ function Set-TspsApiPolicyDetails
     $params = [hashtable]@{
         PresentationServer = $PresentationServer
         Method = 'PUT'
-        AdminRoute = "MonitoringPolicy/$PolicyId/update"
+        AdminRoute = "$PolicyType/$PolicyId/update"
         QueryParameters = $QueryParameters
         RequestParameters = $RequestParameters
         Token = $Token
@@ -2123,38 +2310,72 @@ function Set-TspsApiPolicyDetails
 }
 
 
-### Retrieves details of ISNs, but filters off of child
-### Patrol Agent details. With the lack of more detailed
-### documentation on this route, I've not been able to
-### build more robust options into it.
-
 <#
 .SYNOPSIS
-Short description
+Pulls a list of TSIMs, with their child components.
 
 .DESCRIPTION
-Long description
+Pulls a list of TSIMs, with their child Integration Servers. Each
+of those child Integration Servers are returned with all of their
+child Patrol Agents that match the specified AgentFilter, if any.
+
+This route of the API is not officially documented anywhere. This
+function was built by analysing the request and response
+information in the Chrome developer console while performing
+functions in the Infrastructure Polcies configuration panel within
+the TrueSight Presentation Server web UI.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER AgentFilter
-Parameter description
+If used, will filter the returned list of Patrol Agents down to 
+those that meet the filter criteria.
+
+Default value is "", which will return all Patrol Agents.
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
 
 .PARAMETER FullResponse
-Parameter description
+A switch that specifies whether to return the entire response from
+the API, or just the 'response.serverList' property of the response.
 
 .EXAMPLE
-An example
+Get Servers with Patrol Agents that run on Windows:
 
-.NOTES
-General notes
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    AgentFilter = 'OS CONTAINS "Windows"'
+    Token = <Valid Auth Token>
+}
+
+PS> Get-TspsApiServerDetails @params
+
+serverID                  : 1
+serverDNSName             : hostname2.domain.com
+serverOs                  : Windows Server 2016
+serverVersion             : 11.3.01
+serverProtocol            : HTTPS
+serverPort                : 443
+serverTenantName          : *
+connectionStatus          : 1
+integrationServiceDetails : {@{isName=Live Monitoring; moInstanceId=10002; 
+                            connectionStatus=1; isVersion=TrueSight 
+                            Integration Service 11.3.01 build 241438070; 
+                            osVersion=Windows Server 2016; osName=Windows 
+                            Server 2016; isIPAddress=11.111.111.11; 
+                            isPort=12124; 
+                            associatedPolicies=899_TS_SelfMonitoring, 
+                            900_hostname7; 
+                            patrolAgentDetails=System.Object[]; isID=2; 
+                            isHostName=hostname3.domain.com; 
+                            assocServerID=1; stagingPort=3183; totalPACount=9; 
+                            stagingIS=False}}
 #>
 function Get-TspsApiServerDetails
 {
@@ -2163,9 +2384,7 @@ function Get-TspsApiServerDetails
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PresentationServer,
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$AgentFilter,
+        [string]$AgentFilter="",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Token,
@@ -2196,35 +2415,150 @@ function Get-TspsApiServerDetails
 }
 
 
-### Uses the previous function, Get-TspsApiServerDetails,
-### takes the data returned, then iterates over it to only
-### return the patrol agents that match the filter in one
-### consolidated array.
-
 <#
 .SYNOPSIS
-Short description
+Pulls a list of Patrol Agents that meet filter criteria.
 
 .DESCRIPTION
-Long description
+Pulls a list of Patrol Agents that meet filter criteria. By
+default, will return all Patrol Agents the token's user has
+the ability to view. Uses Get-TspsApiServerDetails, then 
+strips out just the returned Patrol Agents into a single array.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER AgentFilter
-Parameter description
+If used, will filter the returned list of Patrol Agents down to 
+those that meet the filter criteria.
+
+Default value is "", which will return all Patrol Agents.
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
 
 .EXAMPLE
-An example
+Get all patrol agents:
 
-.NOTES
-General notes
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    Token = <Valid Auth Token>
+}
+
+PS> Get-TspsApiPatrolAgentDetails @params
+
+patrolAgentID              : 32
+agentPort                  : 3181
+assocTagID                 : Linux
+moInstanceId               : 10032
+agentOS                    : Linux
+agentVersion               : V11.3.01i
+policyStatus               : 3
+connectionStatus           : 2
+blackoutStatus             : 0
+deployStatus               : 5
+markForDeleteStatus        : 1
+policiesApplied            : 
+policiesFailedToApply      : 
+policiesLastAppliedTime    : 1579106063309
+policiesFailedToApplyTime  : 
+policiesFailedToApplyError : 
+agentIPAdrees              : 111.11.11.333
+associatedServerId         : 1
+hostname                   : CentOSTestVM
+ipsList                    : 111.11.11.333
+policyManagedAgent         : True
+
+patrolAgentID              : 9
+agentPort                  : 3181
+assocTagID                 : CLMAutomationVM
+moInstanceId               : 10009
+agentOS                    : Windows Server 2012 R2 Standard
+agentVersion               : V11.3.01i
+policyStatus               : 3
+connectionStatus           : 1
+blackoutStatus             : 0
+deployStatus               : -1
+markForDeleteStatus        : 0
+policiesApplied            : 
+policiesFailedToApply      : 
+policiesLastAppliedTime    : 1579129623824
+policiesFailedToApplyTime  : 
+policiesFailedToApplyError : 
+agentIPAdrees              : 11.111.111.22
+associatedServerId         : 1
+hostname                   : clmhostname7.domain.com
+ipsList                    : 11.111.111.22
+policyManagedAgent         : True
+...
+
+.EXAMPLE
+Get all patrol agents managed by a specific policy:
+
+PS> $policyParams = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    PolicyId = '999_ApiManagementTestPolicy'
+    Token = <Valid Auth Token>
+}
+
+PS> $policy = Get-TspsApiPolicyDetails @policyParams
+
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    AgentFilter = $policy.agentSelectionCriteria
+    Token = <Valid Auth Token>
+}
+
+PS> Get-TspsApiPatrolAgentDetails @params
+
+patrolAgentID              : 33
+agentPort                  : 3181
+assocTagID                 : TS-Self-Monitoring
+moInstanceId               : 10033
+agentOS                    : Windows Server 2016 Standard
+agentVersion               : V11.3.02.01i
+policyStatus               : 3
+connectionStatus           : 1
+blackoutStatus             : 0
+deployStatus               : 5
+markForDeleteStatus        : 0
+policiesApplied            : 
+policiesFailedToApply      : 
+policiesLastAppliedTime    : 1579208541054
+policiesFailedToApplyTime  : 
+policiesFailedToApplyError : 
+agentIPAdrees              : 11.111.111.44
+associatedServerId         : 1
+hostname                   : hostname4.domain.com
+ipsList                    : 11.111.111.44
+policyManagedAgent         : True
+
+patrolAgentID              : 35
+agentPort                  : 3181
+assocTagID                 : TS-Self-Monitoring
+moInstanceId               : 10034
+agentOS                    : Windows Server 2016 Standard
+agentVersion               : V11.3.02.01i
+policyStatus               : 3
+connectionStatus           : 1
+blackoutStatus             : 0
+deployStatus               : 5
+markForDeleteStatus        : 0
+policiesApplied            : 
+policiesFailedToApply      : 
+policiesLastAppliedTime    : 1579208551820
+policiesFailedToApplyTime  : 
+policiesFailedToApplyError : 
+agentIPAdrees              : 11.111.111.11
+associatedServerId         : 1
+hostname                   : hostname2.domain.com
+ipsList                    : 11.111.111.11
+policyManagedAgent         : True
+...
 #>
 function Get-TspsApiPatrolAgentDetails
 {
@@ -2233,9 +2567,7 @@ function Get-TspsApiPatrolAgentDetails
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$PresentationServer,
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$AgentFilter,
+        [string]$AgentFilter="",
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Token,
@@ -2269,25 +2601,33 @@ function Get-TspsApiPatrolAgentDetails
 
 <#
 .SYNOPSIS
-Short description
+Clears and auth token from the Presentation Server.
 
 .DESCRIPTION
-Long description
+Clears and auth token from the Presentation Server. Effectively
+the same as a logoff.
 
 .PARAMETER PresentationServer
-Parameter description
+The hostname or alias for the TrueSight Presentation Server.
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
 
 .EXAMPLE
-An example
+PS> $params = @{
+    PresentationServer = <TSPS Hostname or Alias>
+    Token = <Valid Auth Token>
+}
 
-.NOTES
-General notes
+PS> Clear-TspsApiAuthToken @params
+
+responseTimeStamp   statusCode statusMsg response                     
+-----------------   ---------- --------- --------                     
+2020-01-17T14:01:34 200        OK        @{authPassed=True; status=OK}
 #>
 function Clear-TspsApiAuthToken
 {
@@ -2331,48 +2671,85 @@ function Clear-TspsApiAuthToken
 ###                    TSIM API Functions                     ###
 #################################################################
 
-### Might need to be edited for the POSTs, depending
-### on how POSTs behave for the TSIM API
-
 <#
 .SYNOPSIS
-Short description
+Invokes API resources on the TSIM.
 
 .DESCRIPTION
-Long description
+Invokes API resources on the TSIM.
 
 .PARAMETER TsimServer
-Parameter description
+The hostname or alias for the TSIM Server.
 
 .PARAMETER Method
-Parameter description
+The HTTP method used to call the specific route of the API.
 
-.PARAMETER ResourceType
-Parameter description
-
-.PARAMETER ResourceId
-Parameter description
+.PARAMETER ResourceTypeAndId
+The type of resource, and (when applicable) it's ID separated
+by a forward slash. Some routes will not leverage an ID.
 
 .PARAMETER Action
-Parameter description
+Defines the type of data to be requested, or the action to
+be taken.
 
 .PARAMETER QueryParameters
-Parameter description
+The collection of query parameters for the request.
+The keys and values are appended to the URI and used
+as the query parameters.
+Default value is @{}
 
 .PARAMETER RequestParameters
-Parameter description
+This hashtable is converted to JSON, and used as the body
+of the request sent. Meant to contain request parameters
+that need to be sent in the body.
+Default value is @{}
+
+Cannot be used in combination with RequestParameterArray
+
+.PARAMETER RequestParameterArray
+An array of hashtables is converted to JSON, and used as
+the body of the request sent. Meant to contain request 
+parameters that need to be sent in the body, when the
+body itself must be an array.
+Default value is @()
+
+Cannot be used in combination with RequestParameters
 
 .PARAMETER Token
-Parameter description
+A valid authorization token returned from Request-TspsApiAuthToken.
 
 .PARAMETER Http
-Parameter description
+A switch that specifies to use HTTP instead of HTTPS when
+calling the TrueSight API
 
 .EXAMPLE
-An example
+Pull device config data for a device by IP:
+
+PS> $QueryParameters = [hashtable]@{
+    idType = 'IPAddress'
+}
+
+PS> $params = [hashtable]@{
+    TsimServer = <TSIM Hostname or Alias>
+    Token = <Valid Auth Token>
+    Method = 'GET'
+    ResourceTypeAndId = 'Device/<Valid TSOM Monitored Device IP>'
+    Action = 'configdata'
+    QueryParameters = $QueryParameters
+}
+
+response                                 responseTimeStamp   statusCode statusMsg
+--------                                 -----------------   ---------- ---------
+{@{monitorInstances=System.Object[];...  2020-01-17T22:36:16 200        OK       
 
 .NOTES
-General notes
+This is a work in progress, and may need to be extended,
+or even split into different functions, depending on
+what parts of the TSIM API are avaiable, and what the
+structure of the routes are.
+
+Will need to rework the ResourceTypeAndId parameter in
+the future.
 #>
 function Invoke-TsimApiResource
 {
@@ -2385,16 +2762,14 @@ function Invoke-TsimApiResource
         [ValidateNotNullOrEmpty()]
         [string]$Method,
         [Parameter(Mandatory=$true)]
-        [ValidateSet("Device","MonitorInstance","CI")]
-        [string]$ResourceType,
+        [string]$ResourceTypeAndId,
         [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$ResourceId,
-        [Parameter(Mandatory=$true)]
-        [ValidateSet("metadata","configdata","stats")]
         [string]$Action,
-        [hashtable]$QueryParameters = @{},
-        [hashtable]$RequestParameters = @{},
+        [hashtable]$QueryParameters=@{},
+        [Parameter(ParameterSetName="HashtableParams")]
+        [hashtable]$RequestParameters=@{},
+        [Parameter(ParameterSetName="ArrayParams")]
+        [hashtable[]]$RequestParameterArray=@(),
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
         [string]$Token,
@@ -2406,7 +2781,7 @@ function Invoke-TsimApiResource
     if ($Http) { $prefix = $prefix.Replace('s','') }
 
     ### Build URI
-    $uri = $prefix + $TsimServer + "/bppmws/api/$($ResourceType)/$($ResourceId)/$($Action)"
+    $uri = $prefix + $TsimServer + "/bppmws/api/$($ResourceTypeAndId)/$($Action)"
     
     if ($QueryParameters.Count -gt 0)
     {
@@ -2432,14 +2807,122 @@ function Invoke-TsimApiResource
         ContentType = 'application/json'
     }
 
-    if ($RequestParameters.Count -gt 0)
+    Switch($PSCmdlet.ParameterSetName)
     {
-        $params.Add('Body', ($RequestParameters | ConvertTo-Json -Depth 100))
+        'HashtableParams' {
+            if ($RequestParameters.Count -gt 0)
+            {
+                $json = (@($RequestParameters) | ConvertTo-Json -Depth 100)
+                $params.Add('Body', $json)
+            }
+        }
+        'ArrayParams' {
+            if ($RequestParameterArray.Count -eq 1)
+            {
+                $json = ($RequestParameterArray | ConvertTo-Json -Depth 100)
+                $params.Add('Body', "[$json]")
+                Write-host $json
+            }
+            elseif ($RequestParameterArray.Count -gt 1)
+            {
+                $json = ($RequestParameterArray | ConvertTo-Json -Depth 100)
+                $params.Add('Body', $json)
+            }
+        }
     }
-
     ### Invoke rest method to execute query,
     ### then return response
     return (Invoke-RestMethod @params)
 }
 
 
+<#
+.SYNOPSIS
+Sends an array of events to the TSIM.
+
+.DESCRIPTION
+Sends an array of events to the TSIM.
+
+For more details on this route of the API, see:
+https://docs.bmc.com/docs/TSInfrastructure/113/creating-events-with-web-services-774797820.html
+
+.PARAMETER TsimServer
+The hostname or alias for the TSIM Server.
+
+.PARAMETER Events
+An array of hashtables containing event data. One hashtable per
+event. Can also accept a single hashtable for just one event.
+
+.PARAMETER Token
+A valid authorization token returned from Request-TspsApiAuthToken.
+
+.PARAMETER Http
+A switch that specifies to use HTTP instead of HTTPS when calling
+the TrueSight API
+
+.PARAMETER FullResponse
+A switch that specifies whether to return the entire response from
+the API, or just the 'response.responseList' property of the response.
+
+.EXAMPLE
+Create and event hashtable, and sent to the TSIM:
+
+PS> $event = [hashtable]@{
+    eventSourceHostName = 'hostname1.domain.com'
+    eventSourceIPAddress = '1.1.1.1'
+    attributes = @{
+        CLASS = 'EVENT'
+        mc_object_uri = ''
+        severity = 'CRITICAL'
+        msg = "This is an event message"
+        mc_smc_alias = ''
+        mc_smc_id = ''
+        mc_owner = 'Administrator'
+        mc_priority = 'PRIORITY_4'
+    }
+}
+
+PS> $params = [hashtable]@{
+    TsimServer = <TSIM Hostname or Alias>
+    Events = $event
+    Token = <Valid Auth Token>
+}
+
+PS> Send-TsimApiEvents @params
+
+statusCode statusMsg mc_ueid                           
+---------- --------- -------                           
+200        OK        mc.pncell_hostname2.1e225dab.0
+#>
+function Send-TsimApiEvents
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$TsimServer,
+        [Parameter(Mandatory=$true)]
+        [hashtable[]]$Events,
+        [Parameter(Mandatory=$true)]
+        [string]$Token,
+        [switch]$Http,
+        [switch]$FullResponse
+    )
+
+    $params = [hashtable]@{
+        TsimServer = $TsimServer
+        Token = $Token
+        Method = 'POST'
+        ResourceTypeAndId = 'Event'
+        Action = 'create'
+        RequestParameterArray = @($Events)
+        Http = $Http.IsPresent
+    }
+
+    $response = Invoke-TsimApiResource @params
+
+    Switch($FullResponse.IsPresent)
+    {
+        True { return $response }
+        False { return $response.responseList }
+    }
+}

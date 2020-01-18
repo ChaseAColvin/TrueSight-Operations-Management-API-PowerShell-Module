@@ -201,8 +201,7 @@ $params = [hashtable]@{
     TsimServer = $tsim
     Token = $token
     Method = 'GET'
-    ResourceType = 'Device'
-    ResourceId = '' #Target server IP addresss, TSIM in this case
+    ResourceTypeAndId = 'Device/<Target server IP addresss>'
     Action = 'configdata'
     QueryParameters = $QueryParameters
 }
@@ -211,6 +210,35 @@ Invoke-TsimApiResource @params
 
 ######################################################################
 
+### Below is an example of sending an event via the
+### TSOM API. First and event is created in the form
+### of a hashtable, with the minimum necessary values.
+### Then that event is sent with Send-TsimApiEvents
+
+$event = [hashtable]@{
+        eventSourceHostName = 'hostname1.domain.com'
+        eventSourceIPAddress = '1.1.1.1'
+        attributes = @{
+            CLASS = 'EVENT'
+            mc_object_uri = ''
+            severity = 'CRITICAL'
+            msg = "This is an event message"
+            mc_smc_alias = ''
+            mc_smc_id = ''
+            mc_owner = 'Administrator'
+            mc_priority = 'PRIORITY_4'
+        }
+    }
+
+$params = [hashtable]@{
+    TsimServer = $tsim
+    Events = $event
+    Token = $token
+}
+
+Send-TsimApiEvents @params
+
+######################################################################
 ### If token is set, attempts to cleanly log out.
 if (-not [string]::IsNullOrEmpty($token))
 {
