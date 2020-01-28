@@ -109,13 +109,30 @@ function Get-LocalDateTimeFromUnixTime
     param(
         [Parameter(Mandatory=$true,
         ValueFromPipeline)]
-        [Int32]$UnixTime,
+        [Int64]$UnixTime,
         [string]$Format
     )
+
+    $unixTimeString = $UnixTime.ToString()
+    $milliseconds = 0
+
+    if($unixTimeString.Length -gt 10)
+    {
+        [int64]::TryParse($unixTimeString.Substring(0, 10), [ref]$UnixTime) | Out-Null
+        [int32]::TryParse(
+            $unixTimeString.Substring(10, ($unixTimeString.Length - 10)),
+            [ref]$milliseconds
+        ) | Out-Null
+    }
 
     $utcOffset = (Get-TimeZone).BaseUtcOffset.Hours
 
     $date = (Get-Date -Date '1970/01/01 00:00:00').AddSeconds($UnixTime)
+
+    if($milliseconds -gt 0)
+    {
+        $date = $date.AddMilliseconds($milliseconds)
+    }
 
     Switch([string]::IsNullOrEmpty($Format))
     {
